@@ -1,4 +1,8 @@
 # shinyで実験結果を可視化するwebアプリの開発。。
+
+- 開発環境
+	- Ubuntu16.04
+	- R version 3.5.1
 - shiny-appの開発状況確認方法
 shiny-serverでリモートからも常時確認できるように
 
