@@ -1,0 +1,99 @@
+---
+title: "TetTet"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(readxl)
+
+```
+
+
+
+```{r}
+
+file_name_TIME<-list.files("./www/RNA-seq_Time/bam/")
+file_name_TIME<-file_name_TIME[grep("\\.bam$",file_name_TIME)]
+```
+## For Global.R Script
+```{r }
+
+#Read the data
+RNA_KO <- read.table("./www/RNA-seq_KO/expression/RNAseq_Nishikawa_Tet2Tet3.txt", header=T, sep="\t")
+RNA_TIME <- read_excel("www/RNA-seq_Time/expression/Dr.Nishikawa_v1_180904.xlsx")
+
+#Extraction the data
+columlist_KO <- c("X1.Control","X4.Control","X2.Tet2KOTet3Het","X3.Tet2KOTet3Het","X5.Tet2KO","X6.Tet2HetTet3KO","X7.Tet3KO","ensembl_gene_id","mgi_symbol","entrezgene","chromosome_name","start_position","end_position")
+columlist_TIME <- c("X__1","343_0hr__1","395_0hr__1","343_10hrs__1","395_10hrs__1","343_24hrs__1","395_24hrs__1","343_48hrs__1","395_48hrs__1")
+
+RNA_KO_extract <- RNA_KO[,columlist_KO]
+tmp <- RNA_KO[,c(1,2,3,5)]
+RNA_TIME_extract <- RNA_TIME[,columlist_TIME]
+
+#change the colume names
+names(RNA_KO_extract) <- c("WT_S1", "WT_S4", "Tet2KOTet3Het_S2","Tet2KOTet3Het_S3", "Tet2KO_S5", "Tet2HetTet3KO_S6", "Tet3KO_S7", "ensenble_gene_id", "mgi_symbol", "enterzgene", "chromosome_name", "start_position", "end_position")
+
+names(RNA_TIME_extract) <- c("mgi_symbol","WT_S343_0hr","WT_S395_0hr","WT_S343_10hrs","WT_S395_10hrs","WT_S343_24hrs","WT_S395_24hrs","WT_S343_48hrs","WT_S395_48hrs")
+
+RNA_TIME_extract<-RNA_TIME_extract[-1,]
+
+```
+
+## Data Plots
+
+```{r  }
+gene_name <- "Gnai3"
+TIME_tmp <- RNA_TIME_extract[RNA_TIME_extract$mgi_symbol==gene_name,]
+KO_tmp <- RNA_KO_extract[RNA_KO_extract$mgi_symbol==gene_name,]
+
+tmp<-as.data.frame(t(TIME_tmp[,-1]))
+class(tmp)
+names(tmp)<-gene_name
+tmp2<-transform(tmp,Sample_Name=rownames(tmp))
+tmp3<-tmp2
+tmp3$Gnai3 <- as.numeric(as.character(tmp2$Gnai3))
+f<-ggplot(tmp3,aes(x=reorder(Sample_Name, -Gnai3),y=Gnai3)) + geom_bar(stat="identity") + theme(axis.text = element_text(angle = 90))
+f
+
+
+```
+
+
+## Dataplot by Gviz ideogram bamdata
+```{r}
+
+Chromosome_input = "chr10"
+Start_input = 109672700
+End_input = 109729043
+
+suppressPackageStartupMessages(library(GenomicRanges))
+suppressPackageStartupMessages(library(Gviz))
+suppressPackageStartupMessages(library(TxDb.Mmusculus.UCSC.mm10.knownGene))
+options(ucscChromosomeNames=FALSE)
+
+kid <- AlignmentsTrack("./www/RNA-seq_Time/bam/343_0hr.bam")
+
+itrack <- IdeogramTrack(genome = "mm10", chromposome = Chromosome_input)
+gtTrack <- GeneRegionTrack(TxDb.Mmusculus.UCSC.mm10.knownGene, chromosome = Chromosome_input, start=Start_input,end=End_input)
+plotTracks(c(itrack,kid,gtTrack), chromosome = Chromosome_input, start=Start_input,end = End_input, transcriptAnnotation="Name", type="pileup")
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
